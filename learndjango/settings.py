@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'news.apps.NewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,7 @@ DATABASES = {
         'USER': 'ankush',
         'HOST': 'localhost',
         'PORT': 5432,
-        'PASSWORD': env("DATABASE_PASSWORD"),
+        'PASSWORD': env('DATABASE_PASSWORD'),
     }
 }
 

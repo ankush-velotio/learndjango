@@ -10,11 +10,10 @@ services:
       - POSTGRES_USER=ankush
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=demo
-      - POSTGRES_PORT=5432
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - /mnt/postgres-data:/var/lib/postgresql/data
 
   pgadmin:
       image: dpage/pgadmin4
@@ -24,10 +23,8 @@ services:
       ports:
         - "5051:80"
       environment:
-        PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+        PGADMIN_DEFAULT_EMAIL: ankush@pgadmin.org
         PGADMIN_DEFAULT_PASSWORD: root
+      volumes:
+        - /mnt/pgadmin-data:/var/lib/pgadmin
       restart: always
-
-
-volumes:
-  postgres_data:
