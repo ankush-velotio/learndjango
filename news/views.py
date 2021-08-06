@@ -1,3 +1,6 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def reporter(request):
+    context = {'reporter_name': "Alex"}
+    return render(request, 'reporter.html', context)
