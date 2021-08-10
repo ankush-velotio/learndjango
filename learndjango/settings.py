@@ -121,6 +121,8 @@ STATIC_URL = '/static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # REST framework JWT authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -132,5 +134,3 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ),
 }
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
