@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+
+  db:
+    restart: always
+    image: postgres
+    container_name: django-auth
+    environment:
+      - POSTGRES_USER=ankush
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=djangoauth
+    ports:
+      - "5432:5432"
+    volumes:
+      - /mnt/postgres-data:/var/lib/postgresql/data
