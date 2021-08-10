@@ -1,0 +1,14 @@
+<html lang="en">
+<head>
+    <title>Reporter</title>
+</head>
+<body>
+    {% extends 'index.html' %}
+
+    {#    Specify in which block to show the below content in the parent template    #}
+    {#    The content block below will replace the empty content block from the index.html template which is the parent    #}
+    {% block content %}
+        <h3>{{ reporter_name }}</h3>
+    {% endblock content %}
+</body>
+</html>
