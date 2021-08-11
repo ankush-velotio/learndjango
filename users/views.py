@@ -46,11 +46,24 @@ class LoginView(APIView):
         }
 
         # Create JWT token
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+        access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
         # Set JWT token as cookie. Set it as HTTP only so that no frontend can access the JWT token
         response = Response()
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=access_token, httponly=True)
+
+        # Generate JWT refresh token
+        # Create payload for JWT token
+        refresh_token_payload = {
+            'id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=3),
+            'iat': datetime.datetime.utcnow()
+        }
+
+        # Create JWT refresh token
+        refresh_token = jwt.encode(refresh_token_payload, settings.REFRESH_TOKEN_SECRET, algorithm='HS256').decode('utf-8')
+        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
+
         response.data = {
             'message': 'Authentication successful'
         }
@@ -64,7 +77,6 @@ class UserView(APIView):
 
         if not token:
             raise NotAuthenticated('Unauthenticated!')
-
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
