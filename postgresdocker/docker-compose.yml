@@ -9,7 +9,7 @@ services:
     environment:
       - POSTGRES_USER=ankush
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=djangoauth
+      - POSTGRES_DB=auth
     ports:
       - "5432:5432"
     volumes:
