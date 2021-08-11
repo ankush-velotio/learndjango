@@ -2,6 +2,8 @@ import datetime
 import jwt
 
 from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +21,10 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    # Using @ensure_csrf_cookie decorator for forcing Django to send the CSRF cookie in the response if the login success
+    ensure_csrf_cookie_method = method_decorator(ensure_csrf_cookie)
+
+    @ensure_csrf_cookie_method
     def post(self, request):
         email = request.data['email']
         password = request.data['password']
