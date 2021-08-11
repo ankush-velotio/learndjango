@@ -71,6 +71,40 @@ class LoginView(APIView):
         return response
 
 
+class RefreshTokenView(APIView):
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if not refresh_token:
+            raise NotAuthenticated('Unauthenticated!')
+        try:
+            payload = jwt.decode(refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise NotAuthenticated('Authentication failed! Signature Expired!')
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        # Create payload for JWT token
+        payload = {
+            'id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2),
+            'iat': datetime.datetime.utcnow()
+        }
+
+        # Create JWT token
+        access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+
+        # Set JWT token as cookie. Set it as HTTP only so that no frontend can access the JWT token
+        response = Response()
+        response.set_cookie(key='jwt', value=access_token, httponly=True)
+
+        response.data = {
+            'message': 'New access token generated'
+        }
+
+        return response
+
+
 class UserView(APIView):
     def get(self, request):
         token = request.COOKIES.get('jwt')
