@@ -31,7 +31,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'news.apps.NewsConfig',
-    'jwtauth',
+    'jwtauth.apps.JwtauthConfig',
+    # If frontend has different port than django then the request won't happen and it will throw an error.
+    # This problem is called CORS headers problem. To prevent this CORS headers error, we will use django-cors-headers package
+    'corsheaders',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -42,6 +46,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'learndjango.urls'
@@ -71,7 +76,7 @@ WSGI_APPLICATION = 'learndjango.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'demo',
+        'NAME': 'auth',
         'USER': 'ankush',
         'HOST': 'localhost',
         'PORT': 5432,
@@ -134,3 +139,12 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ),
 }
+
+# mention auth user model
+# Set AUTH model to the User model created in the users app
+AUTH_USER_MODEL = 'users.User'
+
+# Allow all frontend ports to access our app
+CORS_ORIGIN_ALLOW_ALL = True
+# Set CORS_ALLOW_CREDENTIALS True inorder for the frontend to get those JWT cookies
+CORS_ALLOW_CREDENTIALS = True
