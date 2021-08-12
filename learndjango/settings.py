@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'news.apps.NewsConfig',
     'jwtauth.apps.JwtauthConfig',
     # If frontend has different port than django then the request won't happen and it will throw an error.
     # This problem is called CORS headers problem. To prevent this CORS headers error, we will use django-cors-headers package
@@ -51,6 +52,22 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'learndjango.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 WSGI_APPLICATION = 'learndjango.wsgi.application'
 
