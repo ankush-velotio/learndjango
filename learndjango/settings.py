@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'news.apps.NewsConfig',
     'jwtauth.apps.JwtauthConfig',
     # If frontend has different port than django then the request won't happen and it will throw an error.
     # This problem is called CORS headers problem. To prevent this CORS headers error, we will use django-cors-headers package
