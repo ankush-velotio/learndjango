@@ -114,7 +114,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-learndjango/.env
+server/config/settings/.env
 .venv
 env/
 venv/
