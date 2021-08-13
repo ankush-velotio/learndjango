@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     # This problem is called CORS headers problem. To prevent this CORS headers error, we will use django-cors-headers package
     'corsheaders',
     'users.apps.UsersConfig',
+    'todo.apps.TodoConfig',
 ]
 
 MIDDLEWARE = [
@@ -49,7 +50,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-ROOT_URLCONF = 'learndjango.urls'
+ROOT_URLCONF = 'apps.urls'
 
 TEMPLATES = [
     {
@@ -67,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'learndjango.wsgi.application'
+WSGI_APPLICATION = 'apps.wsgi.application'
 
 
 # Database
