@@ -15,7 +15,7 @@ class Todo(TimestampedModel):
     updated_by = models.CharField(max_length=100, blank=True, null=True)
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-    date = models.DateTimeField(default=now, blank=True)
+    date = models.DateTimeField(default=now)
     is_bookmarked = models.BooleanField(default=False)
     editors = ArrayField(
         models.CharField(max_length=100, blank=True),
