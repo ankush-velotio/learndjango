@@ -23,7 +23,7 @@ class TodoListView(APIView):
         except jwt.ExpiredSignatureError:
             raise NotAuthenticated('Authentication failed! Signature Expired!')
 
-        user = User.objects.filter(id=payload['id']).first()
+        user = User.objects.filter(id=payload['id']).get()
         todos = Todo.objects.filter(Q(owner=user.name) | Q(editors__contains=[user.name])).all()
 
         serializer = TodoSerializer(todos, many=True)
