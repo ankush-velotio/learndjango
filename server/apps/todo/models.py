@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.timezone import now
 from model_utils import Choices
-from ..common.mode_utils import TimestampedModel, CreatorInfoModel
+from ..common.model_utils import TimestampedModel, CreatorInfoModel
 
 from ..users.models import User
 
