@@ -24,7 +24,12 @@ class TodoListView(APIView):
             raise NotAuthenticated('Authentication failed! Signature Expired!')
 
         user = User.objects.filter(id=payload['id']).get()
-        todos = Todo.objects.filter(Q(owner=user.name) | Q(editors__contains=[user.name])).all()
+        # Get all of the To`do ids for which the current user is an editor
+        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
+        todo_ids = [editor.todo_id for editor in editors]
+
+        # Get the todos if current user is the owner or current user is the editor
+        todos = Todo.objects.filter(Q(owner=user.name) | Q(id__in=todo_ids)).all()
 
         serializer = TodoSerializer(todos, many=True)
 
