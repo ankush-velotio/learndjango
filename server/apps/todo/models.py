@@ -4,6 +4,8 @@ from django.utils.timezone import now
 from model_utils import Choices
 from timestampedmodel import TimestampedModel
 
+from ..users.models import User
+
 
 class Todo(TimestampedModel):
     COMPLETED = "completed"
@@ -17,12 +19,7 @@ class Todo(TimestampedModel):
     description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     is_bookmarked = models.BooleanField(default=False)
-    editors = ArrayField(
-        models.CharField(max_length=100, blank=True),
-        size=5,
-        blank=True,
-        null=True,
-    )
+    editors = models.ManyToManyField(User)
 
     class Meta:
         ordering = ["id"]
