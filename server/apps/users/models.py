@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.timezone import now
 from model_utils import Choices
 
-from common.model_utils import TimestampedModel, CreatorInfoModel
+from common.model_utils import TimestampedModel, AuditModel
 
 
 class User(AbstractUser):
@@ -18,7 +18,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
 
-class Todo(TimestampedModel, CreatorInfoModel):
+class Todo(TimestampedModel, AuditModel):
     COMPLETED = "completed"
     INPROGRESS = "inprogress"
     STATUS = Choices((COMPLETED, COMPLETED), (INPROGRESS, INPROGRESS))

@@ -9,7 +9,7 @@ class TimestampedModel(models.Model):
         abstract = True
 
 
-class CreatorInfoModel(models.Model):
+class AuditModel(models.Model):
     created_by = models.CharField(max_length=100)
     updated_by = models.CharField(max_length=100, blank=True, null=True)
 
