@@ -4,6 +4,8 @@ import jwt
 from django.conf import settings
 from rest_framework.exceptions import NotAuthenticated
 
+from common.messages import NOT_AUTHENTICATED_ERROR, SIGNATURE_EXPIRED_ERROR
+
 
 def generate_jwt_access_token(user):
     # Create payload for JWT token
@@ -35,21 +37,21 @@ def generate_jwt_refresh_token(user):
 
 def verify_jwt_token(token):
     if not token:
-        raise NotAuthenticated('Unauthenticated!')
+        raise NotAuthenticated(NOT_AUTHENTICATED_ERROR)
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
-        raise NotAuthenticated('Authentication failed! Signature Expired!')
+        raise NotAuthenticated(SIGNATURE_EXPIRED_ERROR)
 
     return payload
 
 
 def verify_jwt_refresh_token(refresh_token):
     if not refresh_token:
-        raise NotAuthenticated('Unauthenticated!')
+        raise NotAuthenticated(NOT_AUTHENTICATED_ERROR)
     try:
         payload = jwt.decode(refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
-        raise NotAuthenticated('Authentication failed! Signature Expired!')
+        raise NotAuthenticated(SIGNATURE_EXPIRED_ERROR)
 
     return payload

@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
 from common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
+from common.messages import USER_NOT_FOUND, INCORRECT_PASSWORD, AUTHENTICATION_SUCCESSFUL, ACCESS_TOKEN_GENERATED, LOGOUT_SUCCESSFUL
 from users.models import User, Todo
 from users.serializers import UserSerializer, TodoSerializer
 
@@ -33,10 +34,10 @@ class LoginView(APIView):
         user = User.objects.filter(email=email).first()
 
         if user is None:
-            raise AuthenticationFailed('User not found!')
+            raise AuthenticationFailed(USER_NOT_FOUND)
 
         if not user.check_password(password):
-            raise AuthenticationFailed('Incorrect password!')
+            raise AuthenticationFailed(INCORRECT_PASSWORD)
 
         # Create JWT token
         access_token = generate_jwt_access_token(user)
@@ -50,7 +51,7 @@ class LoginView(APIView):
         response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
 
         response.data = {
-            'message': 'Authentication successful'
+            'message': AUTHENTICATION_SUCCESSFUL
         }
 
         return response
@@ -76,7 +77,7 @@ class RefreshTokenView(APIView):
         response.set_cookie(key='jwt', value=access_token, httponly=True)
 
         response.data = {
-            'message': 'New access token generated'
+            'message': ACCESS_TOKEN_GENERATED
         }
 
         return response
@@ -101,7 +102,7 @@ class LogoutView(APIView):
         response = Response()
         response.delete_cookie('jwt')
         response.data = {
-            'message': 'success'
+            'message': LOGOUT_SUCCESSFUL
         }
         return response
 
