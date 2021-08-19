@@ -1,13 +1,14 @@
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
-from .models import User
-from .serializers import UserSerializer
-from ..common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
+from common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
+from common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
+from users.models import User, Todo
+from users.serializers import UserSerializer, TodoSerializer
 
 
 class RegisterView(APIView):
@@ -103,3 +104,23 @@ class LogoutView(APIView):
             'message': 'success'
         }
         return response
+
+
+class TodoListView(APIView):
+    @staticmethod
+    def get(request):
+        token = request.COOKIES.get('jwt')
+
+        payload = verify_jwt_token(token)
+
+        user = User.objects.filter(id=payload['id']).get()
+        # Get all of the To`do ids for which the current user is an editor
+        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
+        todo_ids = [editor.todo_id for editor in editors]
+
+        # Get the todos if current user is the owner or current user is the editor
+        todos = Todo.objects.filter(Q(owner=user.name) | Q(id__in=todo_ids)).all()
+
+        serializer = TodoSerializer(todos, many=True)
+
+        return Response(serializer.data)

@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from users import views
 
 
 urlpatterns = [
@@ -8,4 +8,6 @@ urlpatterns = [
     path('user/', views.UserView.as_view()),
     path('logout/', views.LogoutView.as_view()),
     path('refresh-access-token/', views.RefreshTokenView.as_view()),
+    # to'do app views
+    path('todo-list/', views.TodoListView.as_view()),
 ]

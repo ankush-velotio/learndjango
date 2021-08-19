@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'users.apps.UsersConfig',
-    'todo.apps.TodoConfig',
 ]
 
 MIDDLEWARE = [
