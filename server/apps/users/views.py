@@ -7,7 +7,13 @@ from rest_framework.views import APIView
 
 from common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
 from common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
-from common.messages import USER_NOT_FOUND, INCORRECT_PASSWORD, AUTHENTICATION_SUCCESSFUL, ACCESS_TOKEN_GENERATED, LOGOUT_SUCCESSFUL
+from common.messages import (
+    USER_NOT_FOUND,
+    INCORRECT_PASSWORD,
+    AUTHENTICATION_SUCCESSFUL,
+    ACCESS_TOKEN_GENERATED,
+    LOGOUT_SUCCESSFUL
+)
 from users.models import User, Todo
 from users.serializers import UserSerializer, TodoSerializer
 
