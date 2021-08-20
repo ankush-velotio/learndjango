@@ -1,15 +1,21 @@
-import jwt
-
-from django.conf import settings
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
-from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .generate_jwt_tokens import generate_jwt_access_token, generate_jwt_refresh_token
-from .models import User
-from .serializers import UserSerializer
+from common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
+from common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
+from common.messages import (
+    USER_NOT_FOUND,
+    INCORRECT_PASSWORD,
+    AUTHENTICATION_SUCCESSFUL,
+    ACCESS_TOKEN_GENERATED,
+    LOGOUT_SUCCESSFUL
+)
+from users.models import User, Todo
+from users.serializers import UserSerializer, TodoSerializer
 
 
 class RegisterView(APIView):
@@ -34,10 +40,10 @@ class LoginView(APIView):
         user = User.objects.filter(email=email).first()
 
         if user is None:
-            raise AuthenticationFailed('User not found!')
+            raise AuthenticationFailed(USER_NOT_FOUND)
 
         if not user.check_password(password):
-            raise AuthenticationFailed('Incorrect password!')
+            raise AuthenticationFailed(INCORRECT_PASSWORD)
 
         # Create JWT token
         access_token = generate_jwt_access_token(user)
@@ -51,7 +57,7 @@ class LoginView(APIView):
         response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
 
         response.data = {
-            'message': 'Authentication successful'
+            'message': AUTHENTICATION_SUCCESSFUL
         }
 
         return response
@@ -65,12 +71,7 @@ class RefreshTokenView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
 
-        if not refresh_token:
-            raise NotAuthenticated('Unauthenticated!')
-        try:
-            payload = jwt.decode(refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise NotAuthenticated('Authentication failed! Signature Expired!')
+        payload = verify_jwt_refresh_token(refresh_token)
 
         user = User.objects.filter(id=payload['id']).first()
 
@@ -82,7 +83,7 @@ class RefreshTokenView(APIView):
         response.set_cookie(key='jwt', value=access_token, httponly=True)
 
         response.data = {
-            'message': 'New access token generated'
+            'message': ACCESS_TOKEN_GENERATED
         }
 
         return response
@@ -93,12 +94,7 @@ class UserView(APIView):
     def get(request):
         token = request.COOKIES.get('jwt')
 
-        if not token:
-            raise NotAuthenticated('Unauthenticated!')
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise NotAuthenticated('Authentication failed! Signature Expired!')
+        payload = verify_jwt_token(token)
 
         user = User.objects.filter(id=payload['id']).first()
         serializer = UserSerializer(user)
@@ -112,6 +108,26 @@ class LogoutView(APIView):
         response = Response()
         response.delete_cookie('jwt')
         response.data = {
-            'message': 'success'
+            'message': LOGOUT_SUCCESSFUL
         }
         return response
+
+
+class TodoListView(APIView):
+    @staticmethod
+    def get(request):
+        token = request.COOKIES.get('jwt')
+
+        payload = verify_jwt_token(token)
+
+        user = User.objects.filter(id=payload['id']).get()
+        # Get all of the To`do ids for which the current user is an editor
+        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
+        todo_ids = [editor.todo_id for editor in editors]
+
+        # Get the todos if current user is the owner or current user is the editor
+        todos = Todo.objects.filter(Q(owner=user.id) | Q(id__in=todo_ids)).all()
+
+        serializer = TodoSerializer(todos, many=True)
+
+        return Response(serializer.data)

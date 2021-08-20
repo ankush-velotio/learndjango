@@ -35,8 +35,8 @@ INSTALLED_APPS = [
     # If frontend has different port than django then the request won't happen and it will throw an error.
     # This problem is called CORS headers problem. To prevent this CORS headers error, we will use django-cors-headers package
     'corsheaders',
+    'rest_framework',
     'users.apps.UsersConfig',
-    'todo.apps.TodoConfig',
 ]
 
 MIDDLEWARE = [
