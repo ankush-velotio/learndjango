@@ -126,7 +126,7 @@ class TodoListView(APIView):
         todo_ids = [editor.todo_id for editor in editors]
 
         # Get the todos if current user is the owner or current user is the editor
-        todos = Todo.objects.filter(Q(owner=user.name) | Q(id__in=todo_ids)).all()
+        todos = Todo.objects.filter(Q(owner=user.id) | Q(id__in=todo_ids)).all()
 
         serializer = TodoSerializer(todos, many=True)
 
