@@ -23,11 +23,11 @@ class Todo(TimestampedModel, AuditModel):
     INPROGRESS = "inprogress"
     STATUS = Choices((COMPLETED, COMPLETED), (INPROGRESS, INPROGRESS))
     status = models.CharField(choices=STATUS, default=INPROGRESS, max_length=20)
-    owner = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     is_bookmarked = models.BooleanField(default=False)
+    owner = models.ForeignKey(User, related_name='set_owner', on_delete=models.CASCADE)
     editors = models.ManyToManyField(User)
 
     class Meta:
