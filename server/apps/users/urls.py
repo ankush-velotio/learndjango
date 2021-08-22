@@ -10,4 +10,5 @@ urlpatterns = [
     path('refresh-access-token/', views.RefreshTokenView.as_view()),
     # to'do app views
     path('todo-list/', views.TodoListView.as_view()),
+    path('create-todo/', views.CreateTodoView.as_view()),
 ]

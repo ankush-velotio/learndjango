@@ -131,3 +131,23 @@ class TodoListView(APIView):
         serializer = TodoSerializer(todos, many=True)
 
         return Response(serializer.data)
+
+
+class CreateTodoView(APIView):
+    @staticmethod
+    def post(request):
+        token = request.COOKIES.get('jwt')
+
+        payload = verify_jwt_token(token)
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        # Set current user as a owner and creator of the to'do
+        request.data['owner'] = user.id
+        request.data['created_by'] = user.name
+
+        serializer = TodoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
