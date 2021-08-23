@@ -13,7 +13,8 @@ from common.messages import (
     AUTHENTICATION_SUCCESSFUL,
     ACCESS_TOKEN_GENERATED,
     LOGOUT_SUCCESSFUL,
-    OPERATION_NOT_ALLOWED
+    OPERATION_NOT_ALLOWED,
+    TODO_REMOVED
 )
 from users.models import User, Todo
 from users.serializers import UserSerializer, TodoSerializer
@@ -180,3 +181,25 @@ class UpdateTodoView(APIView):
         serializer.save()
 
         return Response(serializer.data)
+
+
+class DeleteTodoView(APIView):
+    @staticmethod
+    def delete(request, pk):
+        token = request.COOKIES.get('jwt')
+
+        payload = verify_jwt_token(token)
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
+        todo = Todo.objects.filter(id=pk).first()
+        editors = todo.editors.all()
+
+        # If current user is not an owner or editor for the to'do then don't process the request
+        if user != todo.owner and user not in editors:
+            return Response(OPERATION_NOT_ALLOWED)
+
+        todo.delete()
+
+        return Response(TODO_REMOVED)
