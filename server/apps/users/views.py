@@ -12,7 +12,8 @@ from common.messages import (
     INCORRECT_PASSWORD,
     AUTHENTICATION_SUCCESSFUL,
     ACCESS_TOKEN_GENERATED,
-    LOGOUT_SUCCESSFUL
+    LOGOUT_SUCCESSFUL,
+    OPERATION_NOT_ALLOWED
 )
 from users.models import User, Todo
 from users.serializers import UserSerializer, TodoSerializer
@@ -147,6 +148,34 @@ class CreateTodoView(APIView):
         request.data['created_by'] = user.name
 
         serializer = TodoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+
+class UpdateTodoView(APIView):
+    @staticmethod
+    def put(request):
+        token = request.COOKIES.get('jwt')
+
+        payload = verify_jwt_token(token)
+
+        user = User.objects.filter(id=payload['id']).first()
+        todo_id = request.data['todo_id']
+
+        # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
+        todo = Todo.objects.filter(id=todo_id).first()
+        editors = todo.editors.all()
+
+        # If current user is not an owner or editor for the to'do then don't process the request
+        if user != todo.owner and user not in editors:
+            return Response(OPERATION_NOT_ALLOWED)
+
+        # Set current user as updated by
+        request.data['updated_by'] = user.name
+
+        serializer = TodoSerializer(todo, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

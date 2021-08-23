@@ -11,4 +11,5 @@ urlpatterns = [
     # to'do app views
     path('todo-list/', views.TodoListView.as_view()),
     path('create-todo/', views.CreateTodoView.as_view()),
+    path('update-todo/', views.UpdateTodoView.as_view()),
 ]
