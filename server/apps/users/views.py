@@ -1,17 +1,19 @@
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework import generics
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from common.jwt_utils import generate_jwt_access_token, generate_jwt_refresh_token
-from common.jwt_utils import verify_jwt_token, verify_jwt_refresh_token
+from common.jwt_utils import generate_jwt_access_token
+from common.jwt_utils import blacklist_jwt_token
 from common.messages import (
     USER_NOT_FOUND,
     INCORRECT_PASSWORD,
     AUTHENTICATION_SUCCESSFUL,
-    ACCESS_TOKEN_GENERATED,
     LOGOUT_SUCCESSFUL,
     OPERATION_NOT_ALLOWED,
     TODO_REMOVED
@@ -21,6 +23,8 @@ from users.serializers import UserSerializer, TodoSerializer
 
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def post(request):
         serializer = UserSerializer(data=request.data)
@@ -30,6 +34,8 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+
     # Using @ensure_csrf_cookie decorator for forcing Django to send the CSRF cookie in the response if the login success
     ensure_csrf_cookie_method = method_decorator(ensure_csrf_cookie)
 
@@ -54,10 +60,6 @@ class LoginView(APIView):
         response = Response()
         response.set_cookie(key='jwt', value=access_token, httponly=True)
 
-        # Generate JWT refresh token
-        refresh_token = generate_jwt_refresh_token(user)
-        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
-
         response.data = {
             'message': AUTHENTICATION_SUCCESSFUL
         }
@@ -65,84 +67,42 @@ class LoginView(APIView):
         return response
 
 
-class RefreshTokenView(APIView):
-    # Using @csrf_protect decorator for making sure that the cookie (refresh token) is not compromised
-    csrf_protect_method = method_decorator(csrf_protect)
+class UserView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication]
 
-    @csrf_protect_method
-    def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-
-        payload = verify_jwt_refresh_token(refresh_token)
-
-        user = User.objects.filter(id=payload['id']).first()
-
-        # Create JWT access token
-        access_token = generate_jwt_access_token(user)
-
-        # Set JWT token as cookie. Set it as HTTP only so that no frontend can access the JWT token
-        response = Response()
-        response.set_cookie(key='jwt', value=access_token, httponly=True)
-
-        response.data = {
-            'message': ACCESS_TOKEN_GENERATED
-        }
-
-        return response
-
-
-class UserView(APIView):
     @staticmethod
-    def get(request):
-        token = request.COOKIES.get('jwt')
-
-        payload = verify_jwt_token(token)
-
-        user = User.objects.filter(id=payload['id']).first()
+    def get(request, **kwargs):
+        user = request.user
         serializer = UserSerializer(user)
 
         return Response(serializer.data)
 
 
 class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @staticmethod
     def post(request):
         response = Response()
+        blacklist_jwt_token(request.COOKIES.get('jwt'))
         response.delete_cookie('jwt')
+        response.delete_cookie('csrftoken')
         response.data = {
             'message': LOGOUT_SUCCESSFUL
         }
         return response
 
 
-class TodoListView(APIView):
+class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication]
+
+    # Create to'do
     @staticmethod
-    def get(request):
-        token = request.COOKIES.get('jwt')
-
-        payload = verify_jwt_token(token)
-
-        user = User.objects.filter(id=payload['id']).get()
-        # Get all of the To`do ids for which the current user is an editor
-        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
-        todo_ids = [editor.todo_id for editor in editors]
-
-        # Get the todos if current user is the owner or current user is the editor
-        todos = Todo.objects.filter(Q(owner=user.id) | Q(id__in=todo_ids)).all()
-
-        serializer = TodoSerializer(todos, many=True)
-
-        return Response(serializer.data)
-
-
-class CreateTodoView(APIView):
-    @staticmethod
-    def post(request):
-        token = request.COOKIES.get('jwt')
-
-        payload = verify_jwt_token(token)
-
-        user = User.objects.filter(id=payload['id']).first()
+    def post(request, **kwargs):
+        user = request.user
 
         # Set current user as a owner and creator of the to'do
         request.data['owner'] = user.id
@@ -154,15 +114,26 @@ class CreateTodoView(APIView):
 
         return Response(serializer.data)
 
-
-class UpdateTodoView(APIView):
+    # List to'do
     @staticmethod
-    def put(request):
-        token = request.COOKIES.get('jwt')
+    def get(request, **kwargs):
+        user = request.user
 
-        payload = verify_jwt_token(token)
+        # Get all of the To`do ids for which the current user is an editor
+        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
+        todo_ids = [editor.todo_id for editor in editors]
 
-        user = User.objects.filter(id=payload['id']).first()
+        # Get the todos if current user is the owner or current user is the editor
+        todos = Todo.objects.filter(Q(owner=user.id) | Q(id__in=todo_ids)).all()
+
+        serializer = TodoSerializer(todos, many=True)
+
+        return Response(serializer.data)
+
+    # Update to'do
+    @staticmethod
+    def put(request, **kwargs):
+        user = request.user
         todo_id = request.data['todo_id']
 
         # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
@@ -182,15 +153,10 @@ class UpdateTodoView(APIView):
 
         return Response(serializer.data)
 
-
-class DeleteTodoView(APIView):
+    # Delete to'do
     @staticmethod
-    def delete(request, pk):
-        token = request.COOKIES.get('jwt')
-
-        payload = verify_jwt_token(token)
-
-        user = User.objects.filter(id=payload['id']).first()
+    def delete(request, pk, **kwargs):
+        user = request.user
 
         # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
         todo = Todo.objects.filter(id=pk).first()
