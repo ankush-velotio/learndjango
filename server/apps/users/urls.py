@@ -10,9 +10,6 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view()),
     path('refresh-access-token/', jwt_views.RefreshJSONWebToken.as_view()),
     # to'do app views
-    # path('todo-list/', views.TodoListView.as_view()),
-    # path('create-todo/', views.CreateTodoView.as_view()),
-    # path('update-todo/', views.UpdateTodoView.as_view()),
-    # path('delete-todo/<int:pk>/', views.DeleteTodoView.as_view()),
     path('todo/', views.TodoView.as_view()),
+    path('todo/<int:pk>/', views.TodoView.as_view()),
 ]
