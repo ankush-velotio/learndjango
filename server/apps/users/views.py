@@ -155,11 +155,12 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
 
     # Delete to'do
     @staticmethod
-    def delete(request, pk, **kwargs):
+    def delete(request, **kwargs):
+        todo_id: int = request.GET['todo-id']
         user = request.user
 
         # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
-        todo = Todo.objects.filter(id=pk).first()
+        todo = Todo.objects.filter(id=todo_id).first()
         editors = todo.editors.all()
 
         # If current user is not an owner or editor for the to'do then don't process the request
