@@ -13,4 +13,5 @@ urlpatterns = [
     path('todo/', views.TodoView.as_view()),
     # to'do functions
     path('search/', views.SearchTodo.as_view()),
+    path('sort/', views.SortTodo.as_view()),
 ]

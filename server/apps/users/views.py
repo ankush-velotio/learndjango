@@ -199,3 +199,33 @@ class SearchTodo(generics.RetrieveAPIView, TodoUtils):
         ]
 
         return Response(todos)
+
+
+class SortTodo(generics.ListAPIView, TodoUtils):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication]
+
+    @classmethod
+    def get(cls, request, **kwargs):
+        # Pass sort_type as a query parameter in the request URL
+        sort_type: str = request.GET.get('sort_type').lower()
+        if sort_type == "id":
+            todos = cls.sort_by_id(request)
+        elif sort_type == "date":
+            todos = cls.sort_by_date(request)
+        else:
+            return Response(OPERATION_NOT_FOUND_ERROR)
+
+        return Response(todos)
+
+    @classmethod
+    def sort_by_id(cls, request):
+        todos = cls.list_of_todos(request)
+        result = sorted(todos, key=lambda todo: todo['id'], reverse=True)
+        return result
+
+    @classmethod
+    def sort_by_date(cls, request):
+        todos = cls.list_of_todos(request)
+        result = sorted(todos, key=lambda todo: todo['date'], reverse=True)
+        return result
