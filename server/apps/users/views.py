@@ -1,3 +1,5 @@
+import json
+
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -16,6 +18,7 @@ from common.messages import (
     AUTHENTICATION_SUCCESSFUL,
     LOGOUT_SUCCESSFUL,
     OPERATION_NOT_ALLOWED,
+    OPERATION_NOT_FOUND_ERROR,
     TODO_REMOVED
 )
 from users.models import User, Todo
@@ -170,3 +173,29 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
         todo.delete()
 
         return Response(TODO_REMOVED)
+
+
+class TodoUtils:
+    @staticmethod
+    def list_of_todos(request) -> list:
+        todos = TodoView.get(request)
+        todos = json.dumps(todos.data)
+        todos = json.loads(todos)
+        return todos
+
+
+class SearchTodo(generics.RetrieveAPIView, TodoUtils):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication]
+
+    @classmethod
+    def get(cls, request, **kwargs):
+        # Pass title as a query parameter in the request URL
+        title: str = request.GET.get('title')
+        todos = cls.list_of_todos(request)
+        todos = [
+            todo
+            for todo in todos if todo['title'] == title
+        ]
+
+        return Response(todos)

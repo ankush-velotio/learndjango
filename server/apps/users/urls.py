@@ -11,4 +11,6 @@ urlpatterns = [
     path('refresh-access-token/', jwt_views.RefreshJSONWebToken.as_view()),
     # to'do app views
     path('todo/', views.TodoView.as_view()),
+    # to'do functions
+    path('search/', views.SearchTodo.as_view()),
 ]
