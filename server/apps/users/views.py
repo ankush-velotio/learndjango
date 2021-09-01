@@ -70,7 +70,7 @@ class LoginView(APIView):
         return response
 
 
-class UserView(generics.ListAPIView):
+class UserView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [JSONWebTokenAuthentication]
