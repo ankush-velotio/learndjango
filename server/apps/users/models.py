@@ -27,7 +27,7 @@ class Todo(TimestampedModel, AuditModel):
     description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     is_bookmarked = models.BooleanField(default=False)
-    owner = models.ForeignKey(User, related_name='set_owner', on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, related_name='set_owner', on_delete=models.CASCADE, blank=True, null=True)
     editors = models.ManyToManyField(User, blank=True)
 
     class Meta:

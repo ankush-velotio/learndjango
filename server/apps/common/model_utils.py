@@ -10,7 +10,7 @@ class TimestampedModel(models.Model):
 
 
 class AuditModel(models.Model):
-    created_by = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100, blank=True, null=True)
     updated_by = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
