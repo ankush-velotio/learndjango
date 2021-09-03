@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.db.models import Q
 from django.utils.decorators import method_decorator
@@ -18,7 +19,8 @@ from common.messages import (
     LOGOUT_SUCCESSFUL,
     OPERATION_NOT_ALLOWED,
     OPERATION_NOT_FOUND_ERROR,
-    TODO_REMOVED
+    TODO_REMOVED,
+    TODO_NOT_FOUND
 )
 from users.models import User, Todo
 from users.serializers import UserSerializer, TodoSerializer
@@ -97,15 +99,9 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
     # Create to'do
     @staticmethod
     def post(request, **kwargs):
-        user = request.user
-
-        # Set current user as a owner and creator of the to'do
-        request.data['owner'] = user.id
-        request.data['created_by'] = user.name
-
-        serializer = TodoSerializer(data=request.data)
+        serializer = TodoSerializer(context={'request': request}, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(owner=request.user, created_by=request.user.name)
 
         return Response(serializer.data)
 
@@ -154,17 +150,22 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
         todo_id: int = request.GET['todo-id']
         user = request.user
 
-        # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
-        todo = Todo.objects.filter(id=todo_id).first()
-        editors = todo.editors.all()
+        try:
+            # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
+            todo = Todo.objects.filter(id=todo_id).first()
+            editors = todo.editors.all()
 
-        # If current user is not an owner or editor for the to'do then don't process the request
-        if user != todo.owner and user not in editors:
-            return Response(OPERATION_NOT_ALLOWED)
+            # If current user is not an owner or editor for the to'do then don't process the request
+            if user != todo.owner and user not in editors:
+                return Response(OPERATION_NOT_ALLOWED)
 
-        todo.delete()
+            todo.delete()
 
-        return Response(TODO_REMOVED)
+            return Response(TODO_REMOVED)
+        except AttributeError:
+            logging.exception(TODO_NOT_FOUND, exc_info=False)
+
+        return Response(TODO_NOT_FOUND)
 
 
 class TodoUtils:
