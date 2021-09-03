@@ -135,12 +135,9 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
         if user != todo.owner and user not in editors:
             return Response(OPERATION_NOT_ALLOWED)
 
-        # Set current user as updated by
-        request.data['updated_by'] = user.name
-
         serializer = TodoSerializer(todo, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(updated_by=user.name)
 
         return Response(serializer.data)
 

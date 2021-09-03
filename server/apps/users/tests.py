@@ -195,6 +195,7 @@ class TodoTest(TestCase):
         response = TodoView.put(request)
         self.assertEqual(request.data["todo_id"], response.data["id"])
         self.assertEqual(request.data["owner"], response.data["owner"])
+        self.assertEqual(request.user.name, response.data["updated_by"])
 
         # Test if it does not allow the operation if the user is not owner or editor of the to'do
         # Original owner of this to'do is the user with id 2. User with id 1 is not a owner nor editor of below to'do
