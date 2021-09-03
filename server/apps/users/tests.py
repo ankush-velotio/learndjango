@@ -5,7 +5,7 @@ import rest_framework.exceptions
 from django.http.request import HttpRequest
 from django.test import TestCase
 
-from common.messages import AUTHENTICATION_SUCCESSFUL, LOGOUT_SUCCESSFUL, OPERATION_NOT_ALLOWED
+from common.messages import AUTHENTICATION_SUCCESSFUL, LOGOUT_SUCCESSFUL, OPERATION_NOT_ALLOWED, TODO_REMOVED, TODO_NOT_FOUND
 from users.models import User
 from users.views import RegisterView, LoginView, UserView, LogoutView, TodoView
 
@@ -225,3 +225,23 @@ class TodoTest(TestCase):
             "owner": kwargs["owner"],
             "editors": kwargs["editors"],
         }
+
+    def test_delete_todo(self):
+        id_ = 1
+        todo_id = 1
+        request = HttpRequest()
+        request.user = User.objects.filter(id=id_).first()
+        request.GET['todo-id'] = todo_id
+        response = TodoView.delete(request)
+        self.assertEqual(response.data, TODO_REMOVED)
+        # Trying to delete already delete to'do
+        response = TodoView.delete(request)
+        self.assertEqual(response.data, TODO_NOT_FOUND)
+
+        # Trying to delete the to'do for which current user is not a owner and nor an editor
+        id_ = 1
+        todo_id = 2
+        request.user = User.objects.filter(id=id_).first()
+        request.GET['todo-id'] = todo_id
+        response = TodoView.delete(request)
+        self.assertEqual(response.data, OPERATION_NOT_ALLOWED)
