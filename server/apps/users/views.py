@@ -5,10 +5,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from common.jwt_utils import generate_jwt_access_token
 from common.jwt_utils import blacklist_jwt_token
@@ -72,8 +71,6 @@ class LoginView(APIView):
 
 class UserView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JSONWebTokenAuthentication]
 
     @staticmethod
     def get(request, **kwargs):
@@ -84,8 +81,6 @@ class UserView(generics.RetrieveAPIView):
 
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
     @staticmethod
     def post(request):
         response = Response()
@@ -99,9 +94,6 @@ class LogoutView(APIView):
 
 
 class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JSONWebTokenAuthentication]
-
     # Create to'do
     @staticmethod
     def post(request, **kwargs):
@@ -185,9 +177,6 @@ class TodoUtils:
 
 
 class SearchTodo(generics.RetrieveAPIView, TodoUtils):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JSONWebTokenAuthentication]
-
     @classmethod
     def get(cls, request, **kwargs):
         # Pass title as a query parameter in the request URL
@@ -202,9 +191,6 @@ class SearchTodo(generics.RetrieveAPIView, TodoUtils):
 
 
 class SortTodo(generics.ListAPIView, TodoUtils):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JSONWebTokenAuthentication]
-
     @classmethod
     def get(cls, request, **kwargs):
         # Pass sort_type as a query parameter in the request URL

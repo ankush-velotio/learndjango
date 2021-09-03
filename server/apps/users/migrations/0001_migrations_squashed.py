@@ -9,7 +9,7 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    replaces = [('users', '0001_migrations_squashed'), ('users', '0002_alter_todo_editors')]
+    # replaces = [('users', '0001_migrations_squashed'), ('users', '0002_alter_todo_editors')]
 
     initial = True
 
