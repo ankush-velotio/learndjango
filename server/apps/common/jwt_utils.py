@@ -29,13 +29,15 @@ def generate_jwt_access_token(user):
 def generate_jwt_refresh_token(user):
     # Create payload for JWT refresh token
     refresh_token_payload = {
-        'id': user.id,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=3),
-        'iat': datetime.datetime.utcnow()
+        "id": user.id,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3),
+        "iat": datetime.datetime.utcnow(),
     }
 
     # Create JWT refresh token
-    refresh_token = jwt.encode(refresh_token_payload, settings.REFRESH_TOKEN_SECRET, algorithm='HS256').decode('utf-8')
+    refresh_token = jwt.encode(
+        refresh_token_payload, settings.REFRESH_TOKEN_SECRET, algorithm="HS256"
+    ).decode("utf-8")
 
     return refresh_token
 
@@ -44,7 +46,7 @@ def verify_jwt_token(token):
     if not token:
         raise NotAuthenticated(NOT_AUTHENTICATED_ERROR)
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
         raise NotAuthenticated(SIGNATURE_EXPIRED_ERROR)
 
@@ -55,7 +57,9 @@ def verify_jwt_refresh_token(refresh_token):
     if not refresh_token:
         raise NotAuthenticated(NOT_AUTHENTICATED_ERROR)
     try:
-        payload = jwt.decode(refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=['HS256'])
+        payload = jwt.decode(
+            refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=["HS256"]
+        )
     except jwt.ExpiredSignatureError:
         raise NotAuthenticated(SIGNATURE_EXPIRED_ERROR)
 

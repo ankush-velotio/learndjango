@@ -5,7 +5,13 @@ import rest_framework.exceptions
 from django.http.request import HttpRequest
 from django.test import TestCase
 
-from common.messages import AUTHENTICATION_SUCCESSFUL, LOGOUT_SUCCESSFUL, OPERATION_NOT_ALLOWED, TODO_REMOVED, TODO_NOT_FOUND
+from common.messages import (
+    AUTHENTICATION_SUCCESSFUL,
+    LOGOUT_SUCCESSFUL,
+    OPERATION_NOT_ALLOWED,
+    TODO_REMOVED,
+    TODO_NOT_FOUND,
+)
 from users.models import User
 from users.views import RegisterView, LoginView, UserView, LogoutView, TodoView
 
@@ -41,7 +47,7 @@ class UserTest(TestCase):
         required_result = {"id": 3, "name": "demo user", "email": "demo@gmail.com"}
         request = HttpRequest()
         request.user = User.objects.filter(email="demo@gmail.com").first()
-        response = UserView.get(request=request)
+        response = UserView.get(self, request=request)
         self.assertJSONEqual(json.dumps(required_result), response.data)
 
     def login_view(self):
@@ -131,7 +137,7 @@ class TodoTest(TestCase):
                 response1.data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
             ).timestamp(),
             datetime.datetime.now().timestamp(),
-            places=2,
+            places=0,
         )
         self.assertEqual(response1.data["is_bookmarked"], False)
         self.assertEqual(response1.data["owner"], 1)
@@ -150,7 +156,7 @@ class TodoTest(TestCase):
                 response2.data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
             ).timestamp(),
             datetime.datetime.now().timestamp(),
-            places=2,
+            places=0,
         )
         self.assertEqual(response2.data["is_bookmarked"], True)
 
@@ -232,7 +238,7 @@ class TodoTest(TestCase):
         todo_id = 1
         request = HttpRequest()
         request.user = User.objects.filter(id=id_).first()
-        request.GET['todo-id'] = todo_id
+        request.GET["todo-id"] = todo_id
         response = TodoView.delete(request)
         self.assertEqual(response.data, TODO_REMOVED)
         # Trying to delete already delete to'do
@@ -243,6 +249,6 @@ class TodoTest(TestCase):
         id_ = 1
         todo_id = 2
         request.user = User.objects.filter(id=id_).first()
-        request.GET['todo-id'] = todo_id
+        request.GET["todo-id"] = todo_id
         response = TodoView.delete(request)
         self.assertEqual(response.data, OPERATION_NOT_ALLOWED)

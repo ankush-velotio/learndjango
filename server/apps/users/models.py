@@ -14,7 +14,7 @@ class User(AbstractUser):
     username = None
 
     # For login, we have to use email because username is set to None
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
 
@@ -27,7 +27,9 @@ class Todo(TimestampedModel, AuditModel):
     description = models.TextField(blank=True, null=True)
     date = models.DateTimeField(default=now)
     is_bookmarked = models.BooleanField(default=False)
-    owner = models.ForeignKey(User, related_name='set_owner', on_delete=models.CASCADE, blank=True, null=True)
+    owner = models.ForeignKey(
+        User, related_name="set_owner", on_delete=models.CASCADE, default="anonymous"
+    )
     editors = models.ManyToManyField(User, blank=True)
 
     class Meta:
