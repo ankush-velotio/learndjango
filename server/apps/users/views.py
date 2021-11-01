@@ -173,6 +173,16 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         return Response(TODO_NOT_FOUND, status=status.HTTP_400_BAD_REQUEST)
 
 
+"""
+    Filter functionalities implemented:
+        - Search: Search the todos based on 'title' and 'description' fields
+        - Sort: Sort the todos list based on 'id' and 'date' fields
+    Usage:
+        - Search URL: .../api/filter/?search=YOUR_TEXT_HERE
+        - Sort URL: .../api/filter/?ordering=ORDERING_FIELD 
+"""
+
+
 class FilterTodo(generics.ListAPIView):
     serializer_class = TodoSerializer
     filter_backends = [filters.SearchFilter]
