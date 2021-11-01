@@ -3,7 +3,7 @@ import logging
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework import generics, filters
+from rest_framework import generics, filters, status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -32,7 +32,7 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):
@@ -71,6 +71,7 @@ class LoginView(APIView):
         response.set_cookie(key="jwt", value=access_token, httponly=True)
 
         response.data = {"message": AUTHENTICATION_SUCCESSFUL}
+        response.status_code = status.HTTP_200_OK
 
         return response
 
@@ -91,6 +92,7 @@ class LogoutView(APIView):
         response.delete_cookie("jwt")
         response.delete_cookie("csrftoken")
         response.data = {"message": LOGOUT_SUCCESSFUL}
+        response.status_code = status.HTTP_200_OK
         return response
 
 
@@ -112,7 +114,7 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # Update to'do
     def put(self, request, **kwargs):
@@ -125,20 +127,22 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         """
 
         todo = Todo.objects.filter(id=todo_id).first()
-        editors = todo.editors.all()
+        if todo is not None:
+            editors = todo.editors.all()
 
-        """
-            If current user is not an owner or editor for the to'do then
-            don't process the request
-        """
-        if user != todo.owner and user not in editors:
-            return Response(OPERATION_NOT_ALLOWED)
+            """
+                If current user is not an owner or editor for the to'do then
+                don't process the request
+            """
+            if user != todo.owner and user not in editors:
+                return Response(OPERATION_NOT_ALLOWED)
 
-        serializer = TodoSerializer(todo, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=user.name)
+            serializer = TodoSerializer(todo, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=user.name)
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        return Response(data={"message": TODO_NOT_FOUND}, status=status.HTTP_400_BAD_REQUEST)
 
     # Delete to'do
     def delete(self, request, **kwargs):
@@ -158,15 +162,15 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
                 don't process the request
             """
             if user != todo.owner and user not in editors:
-                return Response(OPERATION_NOT_ALLOWED)
+                return Response(OPERATION_NOT_ALLOWED, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
             todo.delete()
 
-            return Response(TODO_REMOVED)
+            return Response(TODO_REMOVED, status=status.HTTP_200_OK)
         except AttributeError:
             logging.exception(TODO_NOT_FOUND, exc_info=False)
 
-        return Response(TODO_NOT_FOUND)
+        return Response(TODO_NOT_FOUND, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FilterTodo(generics.ListAPIView):
