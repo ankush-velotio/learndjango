@@ -169,20 +169,10 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         return Response(TODO_NOT_FOUND)
 
 
-class SearchTodo(generics.ListAPIView):
+class FilterTodo(generics.ListAPIView):
     serializer_class = TodoSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["title", "description"]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Todo.objects.filter(
-            Q(owner=user.id) | Q(editors__email__exact=user.email)
-        ).distinct()
-
-
-class SortTodo(generics.ListAPIView):
-    serializer_class = TodoSerializer
     ordering_fields = ["id", "date"]
     ordering = ["date"]
 
