@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.db.models import Q
@@ -18,7 +17,6 @@ from common.messages import (
     AUTHENTICATION_SUCCESSFUL,
     LOGOUT_SUCCESSFUL,
     OPERATION_NOT_ALLOWED,
-    OPERATION_NOT_FOUND_ERROR,
     TODO_REMOVED,
     TODO_NOT_FOUND,
 )
@@ -40,7 +38,11 @@ class RegisterView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
-    # Using @ensure_csrf_cookie decorator for forcing Django to send the CSRF cookie in the response if the login success
+    """
+        Using @ensure_csrf_cookie decorator for forcing Django to send the 
+        CSRF cookie in the response if the login success
+    """
+
     ensure_csrf_cookie_method = method_decorator(ensure_csrf_cookie)
 
     @ensure_csrf_cookie_method
@@ -60,7 +62,11 @@ class LoginView(APIView):
         # Create JWT token
         access_token = generate_jwt_access_token(user)
 
-        # Set JWT token as cookie. Set it as HTTP only so that no frontend can access the JWT token
+        """
+            Set JWT token as cookie. Set it as HTTP only so that no frontend 
+            can access the JWT token
+        """
+
         response = Response()
         response.set_cookie(key="jwt", value=access_token, httponly=True)
 
@@ -115,11 +121,18 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         user = request.user
         todo_id = request.data["todo_id"]
 
-        # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
+        """
+            Get the to'do that user want to update from database and check
+            if to'do in our database has current user as a editor
+        """
+
         todo = Todo.objects.filter(id=todo_id).first()
         editors = todo.editors.all()
 
-        # If current user is not an owner or editor for the to'do then don't process the request
+        """
+            If current user is not an owner or editor for the to'do then
+            don't process the request
+        """
         if user != todo.owner and user not in editors:
             return Response(OPERATION_NOT_ALLOWED)
 
@@ -136,11 +149,17 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         user = request.user
 
         try:
-            # Get the to'do that user want to update from database and check if to'do in our database has current user as a editor
+            """
+            Get the to'do that user want to update from database and check
+            if to'do in our database has current user as a editor
+            """
             todo = Todo.objects.filter(id=todo_id).first()
             editors = todo.editors.all()
 
-            # If current user is not an owner or editor for the to'do then don't process the request
+            """
+                If current user is not an owner or editor for the to'do then
+                don't process the request
+            """
             if user != todo.owner and user not in editors:
                 return Response(OPERATION_NOT_ALLOWED)
 
@@ -151,15 +170,6 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
             logging.exception(TODO_NOT_FOUND, exc_info=False)
 
         return Response(TODO_NOT_FOUND)
-
-
-class TodoUtils:
-    @staticmethod
-    def list_of_todos(request) -> list:
-        todos = TodoView.get(request)
-        todos = json.dumps(todos.data)
-        todos = json.loads(todos)
-        return todos
 
 
 class SearchTodo(generics.ListAPIView):
