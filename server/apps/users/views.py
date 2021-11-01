@@ -93,7 +93,7 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
 
     def get_queryset(self):
         user = self.request.user
-        return Todo.objects.filter(Q(owner=user.id) | Q(editors__email__contains=user.email))
+        return Todo.objects.filter(Q(owner=user.id) | Q(editors__email__contains=user.email)).distinct()
 
     # Create to'do
     @staticmethod
@@ -171,28 +171,11 @@ class SearchTodo(generics.RetrieveAPIView, TodoUtils):
         return Response(todos)
 
 
-class SortTodo(generics.ListAPIView, TodoUtils):
-    @classmethod
-    def get(cls, request, **kwargs):
-        # Pass sort_type as a query parameter in the request URL
-        sort_type: str = request.GET.get("sort_type").lower()
-        if sort_type == "id":
-            todos = cls.sort_by_id(request)
-        elif sort_type == "date":
-            todos = cls.sort_by_date(request)
-        else:
-            return Response(OPERATION_NOT_FOUND_ERROR)
+class SortTodo(generics.ListAPIView):
+    serializer_class = TodoSerializer
+    ordering_fields = ['id', 'date']
+    ordering = ['date']
 
-        return Response(todos)
-
-    @classmethod
-    def sort_by_id(cls, request):
-        todos = cls.list_of_todos(request)
-        result = sorted(todos, key=lambda todo: todo["id"], reverse=True)
-        return result
-
-    @classmethod
-    def sort_by_date(cls, request):
-        todos = cls.list_of_todos(request)
-        result = sorted(todos, key=lambda todo: todo["date"], reverse=True)
-        return result
+    def get_queryset(self):
+        user = self.request.user
+        return Todo.objects.filter(Q(owner=user.id) | Q(editors__email__exact=user.email)).distinct()
