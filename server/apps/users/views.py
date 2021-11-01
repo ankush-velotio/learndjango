@@ -88,7 +88,13 @@ class LogoutView(APIView):
         return response
 
 
-class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
+class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = TodoSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Todo.objects.filter(Q(owner=user.id) | Q(editors__email__contains=user.email))
+
     # Create to'do
     @staticmethod
     def post(request, **kwargs):
@@ -98,22 +104,6 @@ class TodoView(generics.CreateAPIView, generics.RetrieveUpdateDestroyAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        return Response(serializer.data)
-
-    # List to'do
-    @staticmethod
-    def get(request, **kwargs):
-        user = request.user
-
-        # Get all of the To`do ids for which the current user is an editor
-        editors = Todo.editors.through.objects.filter(user_id=user.id).all()
-        todo_ids = [editor.todo_id for editor in editors]
-
-        # Get the todos if current user is the owner or current user is the editor
-        todos = Todo.objects.filter(Q(owner=user.id) | Q(id__in=todo_ids)).all()
-
-        serializer = TodoSerializer(todos, many=True)
 
         return Response(serializer.data)
 
