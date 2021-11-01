@@ -4,7 +4,7 @@ import logging
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework import generics
+from rest_framework import generics, filters
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -160,15 +160,14 @@ class TodoUtils:
         return todos
 
 
-class SearchTodo(generics.RetrieveAPIView, TodoUtils):
-    @classmethod
-    def get(cls, request, **kwargs):
-        # Pass title as a query parameter in the request URL
-        title: str = request.GET.get("title")
-        todos = cls.list_of_todos(request)
-        todos = [todo for todo in todos if todo["title"] == title]
+class SearchTodo(generics.ListAPIView):
+    serializer_class = TodoSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description']
 
-        return Response(todos)
+    def get_queryset(self):
+        user = self.request.user
+        return Todo.objects.filter(Q(owner=user.id) | Q(editors__email__exact=user.email)).distinct()
 
 
 class SortTodo(generics.ListAPIView):
