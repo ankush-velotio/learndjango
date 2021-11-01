@@ -104,8 +104,7 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         ).distinct()
 
     # Create to'do
-    @staticmethod
-    def post(request, **kwargs):
+    def post(self, request, **kwargs):
         serializer = TodoSerializer(
             data=request.data,
             context={"owner": request.user, "created_by": request.user.name},
@@ -116,8 +115,7 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         return Response(serializer.data)
 
     # Update to'do
-    @staticmethod
-    def put(request, **kwargs):
+    def put(self, request, **kwargs):
         user = request.user
         todo_id = request.data["todo_id"]
 
@@ -143,8 +141,7 @@ class TodoView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView
         return Response(serializer.data)
 
     # Delete to'do
-    @staticmethod
-    def delete(request, **kwargs):
+    def delete(self, request, **kwargs):
         todo_id: int = request.GET["todo-id"]
         user = request.user
 
